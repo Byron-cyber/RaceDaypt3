@@ -1,0 +1,35 @@
+# Full local stack: SQL Server + Azurite (local Azure Blob emulator) + API + MVC.
+# Start with:  docker compose up --build      then open http://localhost:8081
+# For real Azure Blob Storage put its connection string in AZURE_STORAGE_CONNECTION_STRING (see README).
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "RaceDay_Passw0rd!"
+    ports: ["1433:1433"]
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck
+    ports: ["10000:10000"]
+
+  api:
+    build:
+      context: .
+      dockerfile: RaceDay.Api/Dockerfile
+    depends_on: [sql, azurite]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Server=sql;Database=RaceDayDB;User Id=sa;Password=RaceDay_Passw0rd!;TrustServerCertificate=True;"
+      AzureBlob__ConnectionString: "${AZURE_STORAGE_CONNECTION_STRING:-DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;}"
+    ports: ["5274:8080"]
+
+  web:
+    build:
+      context: .
+      dockerfile: RaceDay.Web/Dockerfile
+    depends_on: [api]
+    environment:
+      ApiSettings__BaseUrl: http://api:8080
+    ports: ["8081:8080"]

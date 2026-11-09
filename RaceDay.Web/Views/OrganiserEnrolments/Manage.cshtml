@@ -1,0 +1,58 @@
+@model EnrolmentsManageViewModel
+@{ ViewData["Title"] = "Enrolments"; }
+
+<div class="rd-page-header d-flex justify-content-between align-items-end flex-wrap gap-2">
+    <div>
+        <h1>Enrolments</h1>
+        <p><strong>@Model.Event.Title</strong> · @Format.ShortDate(Model.Event.EventDate) · @Model.Enrolments.Count(e => e.Status != "Cancelled") active</p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-controller="OrganiserEvents" asp-action="Index"><i class="bi bi-arrow-left"></i> Back to events</a>
+</div>
+
+@if (!Model.Enrolments.Any())
+{
+    <div class="rd-empty"><i class="bi bi-people"></i><h2>No enrolments yet</h2><p>When participants enter this event they'll appear here.</p></div>
+}
+else
+{
+    <div class="card rd-table-card">
+        <div class="table-responsive">
+            <table class="table rd-table align-middle mb-0">
+                <thead><tr><th>Participant</th><th>Category</th><th>Enrolled</th><th>Status</th><th>Payment</th><th>Bib</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var e in Model.Enrolments)
+                {
+                    <tr>
+                        <td>
+                            <strong>@e.Participant?.FirstName @e.Participant?.LastName</strong>
+                            <div class="rd-meta">@e.Participant?.Email</div>
+                        </td>
+                        <td>@e.CategoryName <span class="rd-meta">(@Format.Distance(e.DistanceKm))</span></td>
+                        <td>@e.EnrolmentDate.ToString("d MMM yyyy")</td>
+                        <td><partial name="_StatusBadge" model="e.Status" /></td>
+                        <td><partial name="_StatusBadge" model="e.PaymentStatus" /></td>
+                        <td style="min-width:150px">
+                            @if (e.Status != "Cancelled")
+                            {
+                                <form asp-action="Bib" asp-route-eventId="@Model.Event.EventId" asp-route-id="@e.EnrolmentId" method="post" class="d-flex gap-1">
+                                    <input class="form-control form-control-sm" name="bibNumber" value="@e.BibNumber" maxlength="20" placeholder="Bib" aria-label="Bib number" />
+                                    <button type="submit" class="btn btn-outline-primary btn-sm" title="Save bib"><i class="bi bi-check-lg"></i></button>
+                                </form>
+                            }
+                            else { <span>-</span> }
+                        </td>
+                        <td class="text-end">
+                            @if (e.Status is "Pending" or "Confirmed")
+                            {
+                                <form asp-action="Cancel" asp-route-eventId="@Model.Event.EventId" asp-route-id="@e.EnrolmentId" method="post" data-confirm="Cancel this enrolment?">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

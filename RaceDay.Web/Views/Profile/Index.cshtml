@@ -1,0 +1,78 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "My profile";
+    var picture = Format.MediaUrl(Model.ProfilePictureUrl);
+}
+
+<div class="rd-page-header">
+    <h1>My profile</h1>
+    <p>Keep your details up to date.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card rd-form-card text-center">
+            @if (picture is not null)
+            {
+                <img src="@picture" alt="Your profile picture" class="rd-avatar-lg mx-auto" id="avatarPreview" />
+            }
+            else
+            {
+                <div class="rd-avatar-initials mx-auto">@Format.Initials(Model.FirstName, Model.LastName)</div>
+            }
+            <h3 class="mt-3 mb-0">@Model.FirstName @Model.LastName</h3>
+            <p class="rd-meta mb-1">@Model.Email</p>
+            <p><span class="rd-role-pill" style="background:var(--rd-navy)">@Model.Role</span></p>
+
+            <form asp-action="Picture" method="post" enctype="multipart/form-data" class="text-start mt-3">
+                <label class="form-label" for="picture">Profile picture</label>
+                <input class="form-control" type="file" id="picture" name="picture" accept="image/png,image/jpeg,image/webp" required />
+                <div class="form-text">JPG, PNG or WebP, up to 5 MB.</div>
+                <button type="submit" class="btn btn-navy w-100 mt-3"><i class="bi bi-upload"></i> Upload picture</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card rd-form-card">
+            <h3>Personal information</h3>
+            <form asp-action="Update" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <input type="hidden" asp-for="Email" />
+                <input type="hidden" asp-for="Role" />
+                <input type="hidden" asp-for="ProfilePictureUrl" />
+                <input type="hidden" asp-for="CreatedAt" />
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label asp-for="FirstName" class="form-label"></label>
+                        <input asp-for="FirstName" class="form-control" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="LastName" class="form-label"></label>
+                        <input asp-for="LastName" class="form-control" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label" for="emailDisplay">Email</label>
+                        <input class="form-control" id="emailDisplay" value="@Model.Email" disabled />
+                        <div class="form-text">Your email can't be changed.</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="PhoneNumber" class="form-label"></label>
+                        <input asp-for="PhoneNumber" class="form-control" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="DateOfBirth" class="form-label"></label>
+                        <input asp-for="DateOfBirth" class="form-control" />
+                        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-4"><i class="bi bi-check-lg"></i> Save changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

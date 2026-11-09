@@ -1,0 +1,8 @@
+@model string
+@{ ViewData["Title"] = "Temporarily unavailable"; }
+<div class="rd-empty rd-empty-lg">
+    <i class="bi bi-cloud-slash"></i>
+    <h1>We can't load this right now</h1>
+    <p>@Model</p>
+    <a class="btn btn-primary" href="javascript:location.reload()"><i class="bi bi-arrow-clockwise"></i> Try again</a>
+</div>

@@ -1,0 +1,50 @@
+@model List<EnrolmentDto>
+@{ ViewData["Title"] = "My enrolments"; }
+
+<div class="rd-page-header d-flex justify-content-between align-items-end flex-wrap gap-2">
+    <div><h1>My enrolments</h1><p>Every event you've entered and where each entry stands.</p></div>
+    <a class="btn btn-primary" asp-controller="Events" asp-action="Index"><i class="bi bi-plus-lg"></i> Find an event</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="rd-empty">
+        <i class="bi bi-ticket-perforated"></i>
+        <h2>You haven't entered anything yet</h2>
+        <p>Browse upcoming events and enrol in one that suits you.</p>
+        <a class="btn btn-primary" asp-controller="Events" asp-action="Index">Browse events</a>
+    </div>
+}
+else
+{
+    <div class="card rd-table-card">
+        <div class="table-responsive">
+            <table class="table rd-table align-middle mb-0">
+                <thead>
+                    <tr><th>Event</th><th>Date</th><th>Category</th><th>Status</th><th>Payment</th><th>Bib</th><th></th></tr>
+                </thead>
+                <tbody>
+                @foreach (var e in Model)
+                {
+                    <tr>
+                        <td><a asp-controller="Events" asp-action="Details" asp-route-id="@e.EventId"><strong>@e.EventTitle</strong></a></td>
+                        <td>@Format.ShortDate(e.EventDate)</td>
+                        <td>@e.CategoryName <span class="rd-meta">(@Format.Distance(e.DistanceKm))</span></td>
+                        <td><partial name="_StatusBadge" model="e.Status" /></td>
+                        <td><partial name="_StatusBadge" model="e.PaymentStatus" /></td>
+                        <td>@(string.IsNullOrEmpty(e.BibNumber) ? "-" : e.BibNumber)</td>
+                        <td class="text-end">
+                            @if (e.Status is "Pending" or "Confirmed")
+                            {
+                                <form asp-action="Cancel" asp-route-id="@e.EnrolmentId" method="post" data-confirm="Cancel your entry for @e.EventTitle?">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

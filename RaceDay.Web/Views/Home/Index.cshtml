@@ -1,0 +1,28 @@
+@model List<EventDto>
+@{ ViewData["Title"] = "Run. Walk. Ride. Finish."; }
+
+<section class="rd-hero">
+    <h1>Race day <span>starts here.</span></h1>
+    <p>Find your next run, walk or ride, enter in seconds and track every finish. Organisers manage events, entries and results all in one place.</p>
+    <div class="d-flex flex-wrap gap-2 mt-4">
+        <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Register">Join RaceDay</a>
+        <a class="btn btn-outline-light btn-lg" asp-controller="Account" asp-action="Login">Log in</a>
+    </div>
+</section>
+
+<div class="row g-3 mb-5">
+    <div class="col-md-4"><div class="card rd-feature"><i class="bi bi-calendar-event"></i><h3>Find your event</h3><p>Browse upcoming runs, walks and cycle rides and filter by place, date and type.</p></div></div>
+    <div class="col-md-4"><div class="card rd-feature"><i class="bi bi-ticket-perforated"></i><h3>Enter in seconds</h3><p>Choose your category and you're on the start list straight away.</p></div></div>
+    <div class="col-md-4"><div class="card rd-feature"><i class="bi bi-trophy"></i><h3>Track your results</h3><p>See your finish times and positions for every race you've entered.</p></div></div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="rd-page-header"><h2>Coming up</h2><p>Log in to see all events and enter.</p></div>
+    <div class="row g-4 mb-4">
+        @foreach (var e in Model)
+        {
+            <div class="col-md-6 col-lg-4"><partial name="_EventCard" model="e" /></div>
+        }
+    </div>
+}

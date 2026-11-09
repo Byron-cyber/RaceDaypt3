@@ -1,0 +1,92 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model ResultsManageViewModel
+@{ ViewData["Title"] = "Results"; }
+
+<div class="rd-page-header d-flex justify-content-between align-items-end flex-wrap gap-2">
+    <div>
+        <h1>Results</h1>
+        <p><strong>@Model.Event.Title</strong> · @Format.ShortDate(Model.Event.EventDate) · <partial name="_StatusBadge" model="Model.Event.Status" /></p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-controller="OrganiserEvents" asp-action="Index"><i class="bi bi-arrow-left"></i> Back to events</a>
+</div>
+
+<div class="card rd-form-card mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            @if (Model.IsPublished)
+            {
+                <h3 class="mb-1"><i class="bi bi-broadcast"></i> Results are published</h3>
+                <p class="rd-meta mb-0">Participants can see their results under <em>My results</em>. You can still correct a result below.</p>
+            }
+            else
+            {
+                <h3 class="mb-1">Capture results, then publish</h3>
+                <p class="rd-meta mb-0">Enter each participant's finish time and positions. Participants only see results once you publish.</p>
+            }
+        </div>
+        @if (Model.IsPublished)
+        {
+            <form asp-action="Unpublish" asp-route-eventId="@Model.Event.EventId" method="post" data-confirm="Hide the results from participants again?">
+                <button type="submit" class="btn btn-outline-secondary">Unpublish</button>
+            </form>
+        }
+        else
+        {
+            <form asp-action="Publish" asp-route-eventId="@Model.Event.EventId" method="post" data-confirm="Publish the results? Participants will be able to see them.">
+                <button type="submit" class="btn btn-primary" disabled="@(!Model.Rows.Any(r => r.Result is not null))"><i class="bi bi-megaphone"></i> Publish results</button>
+            </form>
+        }
+    </div>
+</div>
+
+@if (!Model.Rows.Any())
+{
+    <div class="rd-empty"><i class="bi bi-stopwatch"></i><h2>No participants to capture</h2><p>Results can be entered once participants have enrolled.</p></div>
+}
+else
+{
+    <div class="card rd-table-card">
+        <div class="table-responsive">
+            <table class="table rd-table align-middle mb-0">
+                <thead><tr><th>Participant</th><th>Category</th><th>Bib</th><th>Finish time</th><th>Overall</th><th>Category pos.</th><th>Result</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var row in Model.Rows)
+                {
+                    var formId = "result-" + row.Enrolment.EnrolmentId;
+                    <tr>
+                        <td><strong>@row.Enrolment.Participant?.FirstName @row.Enrolment.Participant?.LastName</strong></td>
+                        <td>@row.Enrolment.CategoryName</td>
+                        <td>@(string.IsNullOrEmpty(row.Enrolment.BibNumber) ? "-" : row.Enrolment.BibNumber)</td>
+                        <td>
+                            <input form="@formId" class="form-control form-control-sm rd-result-input" name="FinishTime" value="@Format.DurationInput(row.Result?.FinishTime)" placeholder="01:42:35" aria-label="Finish time" pattern="\d{1,2}:\d{2}:\d{2}" />
+                        </td>
+                        <td><input form="@formId" class="form-control form-control-sm rd-result-input" style="max-width:80px" type="number" min="1" name="OverallPosition" value="@row.Result?.OverallPosition" aria-label="Overall position" /></td>
+                        <td><input form="@formId" class="form-control form-control-sm rd-result-input" style="max-width:80px" type="number" min="1" name="CategoryPosition" value="@row.Result?.CategoryPosition" aria-label="Category position" /></td>
+                        <td>
+                            <select form="@formId" class="form-select form-select-sm" style="min-width:110px" name="Status" aria-label="Result status">
+                                @foreach (var s in Lookups.ResultStatuses)
+                                {
+                                    <option value="@s" selected="@((row.Result?.Status ?? "Finished") == s)">@s</option>
+                                }
+                            </select>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <form id="@formId" asp-action="Save" asp-route-eventId="@Model.Event.EventId" method="post" class="d-inline">
+                                <input type="hidden" name="EnrolmentId" value="@row.Enrolment.EnrolmentId" />
+                                <input type="hidden" name="ResultId" value="@row.Result?.ResultId" />
+                                <button type="submit" class="btn btn-primary btn-sm">@(row.Result is null ? "Save" : "Update")</button>
+                            </form>
+                            @if (row.Result is not null)
+                            {
+                                <form asp-action="Delete" asp-route-eventId="@Model.Event.EventId" asp-route-id="@row.Result.ResultId" method="post" class="d-inline" data-confirm="Remove this result?">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Remove result"><i class="bi bi-trash"></i></button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

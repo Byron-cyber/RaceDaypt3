@@ -1,0 +1,97 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model EventFormViewModel
+@{
+    var isEdit = Model.EventId is not null;
+    ViewData["Title"] = isEdit ? "Edit event" : "New event";
+    var banner = Format.MediaUrl(Model.ExistingImageUrl);
+    var typeItems = Lookups.EventTypes.Select(t => new SelectListItem(Format.TypeEmoji(t) + " " + t, t)).ToList();
+    var provinceItems = Lookups.Provinces.Select(x => new SelectListItem(x, x)).ToList();
+    var statuses = (isEdit ? Lookups.EditEventStatuses : Lookups.CreateEventStatuses).Select(s => new SelectListItem(s, s));
+}
+
+<div class="rd-page-header">
+    <h1>@(isEdit ? "Edit event" : "Create an event")</h1>
+    <p>@(isEdit ? "Change the details below and save." : "Tell runners, walkers and riders what's happening.")</p>
+</div>
+
+<div class="card rd-form-card">
+    <form asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@Model.EventId" method="post" enctype="multipart/form-data" novalidate>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <input type="hidden" asp-for="EventId" />
+        <input type="hidden" asp-for="ExistingImageUrl" />
+
+        <div class="row g-3">
+            <div class="col-md-8">
+                <label asp-for="Title" class="form-label"></label>
+                <input asp-for="Title" class="form-control" placeholder="e.g. Soweto Marathon 2027" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="EventType" class="form-label"></label>
+                <select asp-for="EventType" asp-items="typeItems" class="form-select"></select>
+                <span asp-validation-for="EventType" class="text-danger"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Route, start arrangements, what to bring..."></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="EventDate" class="form-label"></label>
+                <input asp-for="EventDate" class="form-control" />
+                <span asp-validation-for="EventDate" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="StartTime" class="form-label"></label>
+                <input asp-for="StartTime" class="form-control" />
+                <span asp-validation-for="StartTime" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="DistanceKm" class="form-label"></label>
+                <input asp-for="DistanceKm" class="form-control" type="number" step="0.01" min="0" />
+                <span asp-validation-for="DistanceKm" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Location" class="form-label"></label>
+                <input asp-for="Location" class="form-control" placeholder="Venue or start point" />
+                <span asp-validation-for="Location" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="City" class="form-label"></label>
+                <input asp-for="City" class="form-control" />
+                <span asp-validation-for="City" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="Province" class="form-label"></label>
+                <select asp-for="Province" asp-items="provinceItems" class="form-select">
+                    <option value="">Choose...</option>
+                </select>
+                <span asp-validation-for="Province" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Status" class="form-label"></label>
+                <select asp-for="Status" asp-items="statuses" class="form-select"></select>
+                <div class="form-text">Only <strong>Published</strong> events can be seen and entered by participants.</div>
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="MaxParticipants" class="form-label"></label>
+                <input asp-for="MaxParticipants" class="form-control" type="number" min="1" placeholder="Leave blank for no limit" />
+                <span asp-validation-for="MaxParticipants" class="text-danger"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="Banner" class="form-label"></label>
+                <input asp-for="Banner" class="form-control" type="file" accept="image/png,image/jpeg,image/webp" data-preview="#bannerPreview" />
+                <div class="form-text">JPG, PNG or WebP, up to 5 MB. It is stored in the cloud and shown on the event page.</div>
+                <img id="bannerPreview" class="rd-banner-preview mt-2 @(banner is null ? "d-none" : "")" alt="Banner preview" src="@banner" />
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> @(isEdit ? "Save changes" : "Create event")</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

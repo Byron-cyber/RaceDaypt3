@@ -1,0 +1,57 @@
+@model List<ResultDto>
+@{ ViewData["Title"] = "My results"; }
+
+<div class="rd-page-header">
+    <h1>My results</h1>
+    <p>Your race history across every completed event you entered.</p>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="rd-empty">
+        <i class="bi bi-trophy"></i>
+        <h2>No results yet</h2>
+        <p>Your results appear here once an organiser has published them after the event.</p>
+        <a class="btn btn-primary" asp-controller="MyEnrolments" asp-action="Index">See my enrolments</a>
+    </div>
+}
+else
+{
+    <div class="d-grid gap-3">
+        @foreach (var r in Model)
+        {
+            <div class="card rd-result-card">
+                <div class="rd-position">
+                    @if (r.Status == "Finished" && r.OverallPosition is not null)
+                    {
+                        <div class="rd-position-number">@Format.Ordinal(r.OverallPosition.Value)</div>
+                        <div class="rd-position-of">of @r.TotalFinishers finisher@(r.TotalFinishers == 1 ? "" : "s")</div>
+                    }
+                    else
+                    {
+                        <div class="rd-position-number">@r.Status</div>
+                        <div class="rd-position-of">no finish position</div>
+                    }
+                </div>
+                <div class="flex-grow-1">
+                    <h3 class="mb-1">@r.EventTitle</h3>
+                    <div class="rd-meta"><i class="bi bi-calendar3"></i> @Format.Date(r.EventDate) &nbsp; <i class="bi bi-diagram-3"></i> @r.CategoryName
+                        @if (!string.IsNullOrEmpty(r.BibNumber)) { <text> &nbsp; <i class="bi bi-hash"></i> Bib @r.BibNumber</text> }
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="rd-time">@(r.FinishTime is null ? "-" : Format.Duration(r.FinishTime))</div>
+                    <div class="rd-time-label">Finish time</div>
+                </div>
+                @if (r.CategoryPosition is not null)
+                {
+                    <div class="text-center">
+                        <div class="rd-time">@Format.Ordinal(r.CategoryPosition.Value)</div>
+                        <div class="rd-time-label">In category</div>
+                    </div>
+                }
+                <partial name="_StatusBadge" model="r.Status" />
+            </div>
+        }
+    </div>
+}

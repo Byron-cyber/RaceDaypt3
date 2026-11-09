@@ -1,0 +1,14 @@
+@{ ViewData["Title"] = "Access denied"; }
+<div class="rd-empty rd-empty-lg">
+    <i class="bi bi-slash-circle"></i>
+    <h1>That area isn't for you</h1>
+    <p>Your account doesn't have permission to open this page.</p>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Take me to my home page</a>
+    }
+    else
+    {
+        <a class="btn btn-primary" asp-controller="Account" asp-action="Login">Log in</a>
+    }
+</div>

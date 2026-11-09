@@ -1,0 +1,89 @@
+@model EventDetailsViewModel
+@{
+    var ev = Model.Event;
+    ViewData["Title"] = ev.Title;
+    var banner = Format.MediaUrl(ev.ImageUrl);
+    var open = ev.Status == "Published";
+}
+
+<div class="rd-detail-hero" style="@(banner is null ? "" : $"background-image:url('{banner}')")">
+    <div class="rd-detail-body">
+        <div class="d-flex flex-wrap gap-2 mb-2">
+            <span class="rd-type-chip" style="position:static">@Format.TypeEmoji(ev.EventType) @ev.EventType</span>
+            <partial name="_StatusBadge" model="ev.Status" />
+        </div>
+        <h1>@ev.Title</h1>
+        <div class="rd-meta d-flex flex-wrap gap-3">
+            <span><i class="bi bi-calendar3"></i> @Format.Date(ev.EventDate)@(ev.StartTime is null ? "" : " at " + Format.Time(ev.StartTime))</span>
+            <span><i class="bi bi-geo-alt-fill"></i> @ev.Location, @ev.City, @ev.Province</span>
+            @if (ev.DistanceKm is not null) { <span><i class="bi bi-signpost-split"></i> @Format.Distance(ev.DistanceKm)</span> }
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4 order-lg-2">
+        <div class="card rd-form-card">
+            <h3>About this event</h3>
+            <p style="white-space:pre-line">@(string.IsNullOrWhiteSpace(ev.Description) ? "No description has been added yet." : ev.Description)</p>
+            <hr />
+            <dl class="mb-0 rd-meta">
+                <dt>When</dt><dd>@Format.Date(ev.EventDate)</dd>
+                <dt>Where</dt><dd>@ev.Location, @ev.City</dd>
+                @if (ev.MaxParticipants is not null) { <dt>Capacity</dt><dd>@ev.MaxParticipants participants</dd> }
+            </dl>
+        </div>
+    </div>
+
+    <div class="col-lg-8 order-lg-1">
+        <h2>Choose your category</h2>
+
+        @if (!Model.Event.Categories.Any())
+        {
+            <div class="rd-empty"><i class="bi bi-diagram-3"></i><p>The organiser hasn't added any categories yet. Check back soon.</p></div>
+        }
+        else if (!open)
+        {
+            <div class="alert alert-warning">This event is <strong>@ev.Status.ToLowerInvariant()</strong>, so enrolment is closed.</div>
+        }
+
+        @if (Model.Event.Categories.Any())
+        {
+            <form asp-action="Enrol" asp-route-id="@ev.EventId" method="post">
+                <div class="row g-3 mb-3">
+                    @foreach (var c in Model.Event.Categories)
+                    {
+                        var enrolled = Model.EnrolledCategoryIds.Contains(c.CategoryId);
+                        <div class="col-md-6">
+                            <label class="rd-category">
+                                <input type="radio" name="categoryId" value="@c.CategoryId" disabled="@(enrolled || !open)" />
+                                <span class="rd-category-body">
+                                    <span class="d-flex justify-content-between align-items-start">
+                                        <span class="rd-category-name">@c.Name</span>
+                                        <span class="rd-category-fee">@Format.Money(c.EntryFee)</span>
+                                    </span>
+                                    <span class="rd-meta d-block"><i class="bi bi-signpost-split"></i> @Format.Distance(c.DistanceKm)</span>
+                                    @if (c.AgeMin is not null || c.AgeMax is not null)
+                                    {
+                                        <span class="rd-meta d-block"><i class="bi bi-person"></i> Ages @(c.AgeMin?.ToString() ?? "0")@(c.AgeMax is null ? "+" : "–" + c.AgeMax)</span>
+                                    }
+                                    @if (enrolled) { <span class="status-badge status-confirmed mt-2"><span class="status-dot"></span>You're enrolled</span> }
+                                </span>
+                            </label>
+                        </div>
+                    }
+                </div>
+
+                @if (open)
+                {
+                    <div class="mb-3">
+                        <label class="form-label" for="notes">Notes for the organiser (optional)</label>
+                        <input class="form-control" id="notes" name="notes" maxlength="500" placeholder="e.g. first marathon, need a wheelchair-friendly start" />
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-ticket-perforated"></i> Enrol now</button>
+                }
+            </form>
+        }
+        <p class="mt-4"><a asp-action="Index"><i class="bi bi-arrow-left"></i> Back to all events</a></p>
+    </div>
+</div>

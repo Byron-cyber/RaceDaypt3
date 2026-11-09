@@ -1,0 +1,87 @@
+@model EventsIndexViewModel
+@{
+    ViewData["Title"] = "Upcoming events";
+    var f = Model.Filter;
+}
+
+<div class="rd-page-header">
+    <h1>Upcoming events</h1>
+    <p>Find your next run, walk or ride.</p>
+</div>
+
+<form method="get" asp-action="Index" class="card rd-filter">
+    <div class="row g-3 align-items-end">
+        <div class="col-md-3 col-sm-6">
+            <label class="form-label" for="eventType">Event type</label>
+            <select class="form-select" id="eventType" name="eventType">
+                <option value="">All types</option>
+                @foreach (var type in Lookups.EventTypes)
+                {
+                    <option value="@type" selected="@(f.EventType == type)">@Format.TypeEmoji(type) @type</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <label class="form-label" for="province">Province</label>
+            <select class="form-select" id="province" name="province">
+                <option value="">All provinces</option>
+                @foreach (var p in Lookups.Provinces)
+                {
+                    <option value="@p" selected="@(f.Province == p)">@p</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2 col-sm-6">
+            <label class="form-label" for="city">City</label>
+            <input class="form-control" id="city" name="city" value="@f.City" placeholder="Any city" />
+        </div>
+        <div class="col-md-2 col-sm-6">
+            <label class="form-label" for="dateFrom">From</label>
+            <input class="form-control" type="date" id="dateFrom" name="dateFrom" value="@f.DateFrom?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-md-2 col-sm-6">
+            <label class="form-label" for="dateTo">To</label>
+            <input class="form-control" type="date" id="dateTo" name="dateTo" value="@f.DateTo?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-funnel"></i> Filter</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Clear</a>
+        </div>
+    </div>
+</form>
+
+@if (!Model.Events.Any())
+{
+    <div class="rd-empty">
+        <i class="bi bi-calendar-x"></i>
+        <h2>No events found</h2>
+        <p>Try changing or clearing your filters.</p>
+    </div>
+}
+else
+{
+    <p class="rd-meta">@Model.TotalCount event@(Model.TotalCount == 1 ? "" : "s") found</p>
+    <div class="row g-4">
+        @foreach (var e in Model.Events)
+        {
+            <div class="col-md-6 col-lg-4"><partial name="_EventCard" model="e" /></div>
+        }
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-4" aria-label="Pages">
+            <ul class="pagination justify-content-center">
+                @for (var i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == f.Page ? "active" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-page="@i" asp-route-eventType="@f.EventType" asp-route-province="@f.Province"
+                           asp-route-city="@f.City" asp-route-dateFrom="@f.DateFrom?.ToString("yyyy-MM-dd")"
+                           asp-route-dateTo="@f.DateTo?.ToString("yyyy-MM-dd")">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}

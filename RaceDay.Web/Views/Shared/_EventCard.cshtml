@@ -1,0 +1,19 @@
+@model EventDto
+@{
+    var banner = Format.MediaUrl(Model.ImageUrl);
+}
+<div class="card rd-event-card h-100">
+    <a asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventId" class="rd-event-banner @(banner is null ? "rd-event-banner-empty" : "")"
+       style="@(banner is null ? "" : $"background-image:url('{banner}')")" aria-label="@Model.Title">
+        @if (banner is null) { <span class="rd-banner-emoji">@Format.TypeEmoji(Model.EventType)</span> }
+        <span class="rd-date-chip"><strong>@Format.Day(Model.EventDate)</strong>@Format.Month(Model.EventDate)</span>
+        <span class="rd-type-chip">@Model.EventType</span>
+    </a>
+    <div class="card-body d-flex flex-column">
+        <h3 class="rd-card-title"><a asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventId">@Model.Title</a></h3>
+        <p class="rd-meta mb-1"><i class="bi bi-geo-alt-fill"></i> @Model.City, @Model.Province</p>
+        <p class="rd-meta mb-3"><i class="bi bi-calendar3"></i> @Format.Date(Model.EventDate)@(Model.StartTime is null ? "" : " · " + Format.Time(Model.StartTime))
+            @if (Model.DistanceKm is not null) { <text> · <i class="bi bi-signpost-split"></i> @Format.Distance(Model.DistanceKm)</text> }</p>
+        <a asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventId" class="btn btn-primary mt-auto">View event <i class="bi bi-arrow-right"></i></a>
+    </div>
+</div>
